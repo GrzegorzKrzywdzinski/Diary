@@ -1,10 +1,13 @@
 ﻿using Diary.Commands;
 using Diary.Models;
+using Diary.Models.Domains;
+using Diary.Models.Wrappers;
 using Diary.Views;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -13,8 +16,16 @@ namespace Diary.ViewModels
 {
     public class MainViewModel : ViewModelBase
     {
+
+        Repository _repository = new Repository();
         public MainViewModel()
         {
+                //using (var context = new ApplicationDbContext())
+                //{
+                //    var students = context.Students.ToList();
+                //}
+
+
             RefreshStudentsCommand = new RelayCommand(RefreshStudents);
             AddStudentCommand = new RelayCommand(AddEditStudent);
             EditStudentCommand = new RelayCommand(AddEditStudent, CanEditDeleteStudent);
@@ -31,9 +42,9 @@ namespace Diary.ViewModels
         public ICommand EditStudentCommand { get; set; }
         public ICommand DeleteStudentCommand { get; set; }
 
-        private ObservableCollection<Student> _students;
+        private ObservableCollection<StudentWrapper> _students;
 
-        public ObservableCollection<Student> Students
+        public ObservableCollection<StudentWrapper> Students
         {
             get { return _students; }
             set
@@ -43,8 +54,8 @@ namespace Diary.ViewModels
             }
         }
 
-        private Student _selectedStudent;
-        public Student SelectedStudent 
+        private StudentWrapper _selectedStudent;
+        public StudentWrapper SelectedStudent 
         {
             get
             {
@@ -57,7 +68,7 @@ namespace Diary.ViewModels
             }
         }
 
-        public Student Student
+        public StudentWrapper Student
         {
             get { return _selectedStudent; }
             set
@@ -115,7 +126,7 @@ namespace Diary.ViewModels
 
         private void AddEditStudent(object obj)
         {
-            var addEditStudentView = new AddEditStudentView(obj as Student);
+            var addEditStudentView = new AddEditStudentView(obj as StudentWrapper);
             addEditStudentView.Closed += AddEditStudentView_Closed;
             addEditStudentView.ShowDialog();
         }
@@ -132,25 +143,28 @@ namespace Diary.ViewModels
 
         private void RefreshDiary()
         {
-            Students = new ObservableCollection<Student>
+            Students = new ObservableCollection<StudentWrapper>
             {
-                new Student{FirstName = "Kazimierz", LastName="Kowalski", Group = new Group{ Id= 1} },
-                new Student{FirstName = "Marta", LastName="Nowak", Group = new Group{ Id= 2} },
-                new Student{FirstName = "Zuzanna", LastName="Kmieć", Group = new Group{ Id= 2} },
-                new Student{FirstName = "Adam", LastName="Paproch", Group = new Group{ Id= 1} }
+                new StudentWrapper{FirstName = "Kazimierz", LastName="Kowalski", Group = new GroupWrapper{ Id= 1} },
+                new StudentWrapper{FirstName = "Marta", LastName="Nowak", Group = new GroupWrapper{ Id= 2} },
+                new StudentWrapper{FirstName = "Zuzanna", LastName="Kmieć", Group = new GroupWrapper{ Id= 2} },
+                new StudentWrapper{FirstName = "Adam", LastName="Paproch", Group = new GroupWrapper{ Id= 1} }
             };
         }
 
         private void InitGroups()
         {
-            Groups = new ObservableCollection<Group>
-            {
-                new Group{ Id= 0 , Name = "Wszystkie"},
-                new Group{ Id= 1 , Name = "Klasa 1"},
-                new Group{ Id= 2 , Name = "Klasa 2"},
-                new Group{ Id= 3 , Name = "Klasa 3"},
-                new Group{ Id= 4 , Name = "Klasa 4"}
-            };
+            var groups = _repository.GetGroups();
+            _groups.Insert(0, new Group { Id = 0, Name = "Wszystkie" });
+
+            //Groups = new ObservableCollection<GroupWrapper>
+            //{
+            //    new GroupWrapper{ Id= 0 , Name = "Wszystkie"},
+            //    new GroupWrapper{ Id= 1 , Name = "Klasa 1"},
+            //    new GroupWrapper{ Id= 2 , Name = "Klasa 2"},
+            //    new GroupWrapper{ Id= 3 , Name = "Klasa 3"},
+            //    new GroupWrapper{ Id= 4 , Name = "Klasa 4"}
+            //};
 
             SelectedGroupId = 0;
         }
